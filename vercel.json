@@ -1,0 +1,9 @@
+{
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "ADMIN_PASSWORD": "Mdpadmin1",
+    "JWT_SECRET": "void-gallery-jwt-secret-2026-xK9mP"
+  }
+}
