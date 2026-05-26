@@ -8,6 +8,7 @@ const TAB_LABELS = { upload: 'UPLOAD', photos: 'PHOTOS', claude: 'CLAUDE MCP', s
 
 export default function AdminPage() {
   const router = useRouter()
+  const [authChecked, setAuthChecked] = useState(false)
   const [tab, setTab] = useState('upload')
   const [photos, setPhotos] = useState([])
   const [pending, setPending] = useState([])
@@ -30,6 +31,22 @@ export default function AdminPage() {
   const [mcpConfigured, setMcpConfigured] = useState(false)
 
   useEffect(() => {
+    // Vérifier que le token existe et est valide
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth', { method: 'GET', credentials: 'include' })
+        if (!res.ok && res.status === 401) {
+          console.log('[v0] [admin] Not authenticated, redirecting to login')
+          router.push('/login')
+          return
+        }
+      } catch (err) {
+        console.log('[v0] [admin] Auth check error:', err.message)
+      }
+      setAuthChecked(true)
+    }
+
+    checkAuth()
     fetchPhotos()
     const savedKey = localStorage.getItem('void_apikey') || ''
     const savedMcp = localStorage.getItem('void_mcpurl') || ''

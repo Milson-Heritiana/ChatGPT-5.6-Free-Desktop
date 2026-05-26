@@ -1,7 +1,23 @@
 import { NextResponse } from 'next/server'
-import { signToken } from '@/lib/auth'
+import { signToken, verifyToken } from '@/lib/auth'
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Mdpadmin1'
+
+export async function GET(request) {
+  try {
+    const token = request.cookies.get('void_auth')?.value
+    if (!token) {
+      return NextResponse.json({ authenticated: false, error: 'No token' }, { status: 401 })
+    }
+    const payload = await verifyToken(token)
+    if (!payload) {
+      return NextResponse.json({ authenticated: false, error: 'Invalid token' }, { status: 401 })
+    }
+    return NextResponse.json({ authenticated: true, role: payload.role })
+  } catch (err) {
+    return NextResponse.json({ authenticated: false, error: err.message }, { status: 401 })
+  }
+}
 
 export async function POST(request) {
   try {
