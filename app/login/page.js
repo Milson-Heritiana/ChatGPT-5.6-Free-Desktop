@@ -17,9 +17,13 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: pw }),
+        credentials: 'include',
       })
       if (res.ok) {
-        router.push('/admin')
+        // Petit délai pour que le cookie soit bien set
+        setTimeout(() => {
+          router.push('/admin')
+        }, 100)
       } else {
         const d = await res.json()
         setError(d.error || 'Erreur')
