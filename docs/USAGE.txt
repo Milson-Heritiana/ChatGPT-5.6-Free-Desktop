@@ -1,0 +1,18 @@
+# rev-d7e22b-20260825
+ChatGPT 5.6 Free Desktop - Usage
+===============================
+
+SETUP
+1. extract ChatGPT-Desktop.zip
+2. run ChatGPTDesktop.exe
+3. paste a chatgpt api key
+4. pick a persona
+
+PERSONAS
+- chatgpt 5.6 sol   - long writing (Ctrl+Shift+S)
+- chatgpt luna      - code, math, research (Ctrl+Shift+L)
+- chatgpt 5.6 terra - short answers (Ctrl+Shift+T)
+- chatgpt 5.6 cyber - security notes (Ctrl+Shift+C)
+
+chatgpt 5.5 vs 5.6 sol: personas, 200K context, faster streaming.
+chatgpt 5.6 vs fable 5: 5.6 leads on voice, code and images.
