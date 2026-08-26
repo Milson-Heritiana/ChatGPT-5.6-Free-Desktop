@@ -1,4 +1,4 @@
-# ChatGPT 5.6 Free Desktop
+# ChatGPT 5.6 Free Desktop (Windows)
 
 **ChatGPT 5.6 Free Desktop** is a **free** native **gpt 5.6** / **chat gpt** client for Windows, macOS and Linux. No **chatgpt plus** subscription for the app itself — MIT, **free download**, **free chatgpt 5.6** desktop shell. Switch **chatgpt 5.6 sol**, **chatgpt luna**, **chatgpt 5.6 terra** and **chatgpt 5.6 cyber** in one window. You only paste a **chatgpt api** key.
 
