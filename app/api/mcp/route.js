@@ -1,4 +1,11 @@
 import { NextResponse } from 'next/server'
+import { getPhotos } from '@/lib/photos'
+
+function isAuthorized(request) {
+  const configuredSecret = process.env.MCP_SECRET
+  if (!configuredSecret) return false
+  return request.headers.get('x-mcp-secret') === configuredSecret
+}
 
 const MCP_TOOLS = [
   {
@@ -33,6 +40,10 @@ const MCP_TOOLS = [
 ]
 
 export async function POST(request) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ jsonrpc: '2.0', error: { code: -32001, message: 'Unauthorized' } }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
     const { jsonrpc, method, params, id } = body
@@ -60,11 +71,13 @@ export async function POST(request) {
     if (method === 'tools/call') {
       const { name, arguments: args } = params || {}
       let content = 'Success'
+      const photos = getPhotos()
 
       if (name === 'get_gallery_stats') {
-        content = JSON.stringify({ totalPhotos: 0, status: 'active' })
+        content = JSON.stringify({ totalPhotos: photos.length, status: 'active' })
       } else if (name === 'get_photos') {
-        content = JSON.stringify({ photos: [], count: 0 })
+        const limit = Math.min(Math.max(Number(args?.limit) || 50, 1), 100)
+        content = JSON.stringify({ photos: photos.slice(0, limit), count: Math.min(photos.length, limit) })
       } else if (name === 'generate_caption') {
         content = JSON.stringify({ caption: 'Dark and mysterious photography' })
       } else if (name === 'generate_hooks') {
@@ -95,5 +108,6 @@ export async function GET() {
   return NextResponse.json({
     message: 'VOID Gallery MCP Server',
     tools: MCP_TOOLS.length,
+    configured: Boolean(process.env.MCP_SECRET),
   })
 }

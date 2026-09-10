@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import styles from './admin.module.css'
 
 const TABS = ['upload', 'photos', 'claude', 'settings']
-const TAB_LABELS = { upload: 'UPLOAD', photos: 'PHOTOS', claude: 'CLAUDE MCP', settings: 'PARAMÈTRES' }
+const TAB_LABELS = { upload: 'UPLOAD', photos: 'PHOTOS', claude: 'CLAUDE MCP', settings: 'SETTINGS' }
 
 export default function AdminPage() {
   const router = useRouter()
@@ -17,9 +17,8 @@ export default function AdminPage() {
   const [dragging, setDragging] = useState(false)
 
   // Claude chat
-  const [apiKey, setApiKey] = useState('')
   const [apiConnected, setApiConnected] = useState(false)
-  const [chatMsgs, setChatMsgs] = useState([{ type: 'sys', text: 'Connecte ta clé API pour démarrer...' }])
+  const [chatMsgs, setChatMsgs] = useState([{ type: 'sys', text: 'Connect your API key to get started...' }])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const chatRef = useRef(null)
@@ -31,7 +30,7 @@ export default function AdminPage() {
   const [mcpConfigured, setMcpConfigured] = useState(false)
 
   useEffect(() => {
-    // Vérifier que le token existe et est valide
+    // Check that the token exists and is valid.
     const checkAuth = async () => {
       try {
         const res = await fetch('/api/auth', { method: 'GET', credentials: 'include' })
@@ -48,10 +47,9 @@ export default function AdminPage() {
 
     checkAuth()
     fetchPhotos()
-    const savedKey = localStorage.getItem('void_apikey') || ''
     const savedMcp = localStorage.getItem('void_mcpurl') || ''
     const savedSec = localStorage.getItem('void_mcpsec') || ''
-    if (savedKey) { setApiKey(savedKey); setApiConnected(true) }
+    fetch('/api/claude').then(res => res.json()).then(data => setApiConnected(data.configured === true))
     if (savedMcp) { setMcpUrl(savedMcp); setMcpConfigured(true) }
     if (savedSec) setMcpSecret(savedSec)
   }, [])
@@ -96,20 +94,20 @@ export default function AdminPage() {
     }
     setPending([]); setLabel('')
     fetchPhotos()
-    showToast(`${count} photo(s) publiée(s) ✓`, 'ok')
+    showToast(`${count} photo(s) published ✓`, 'ok')
   }
 
   const deletePhoto = async (id) => {
     await fetch(`/api/photos?id=${id}`, { method: 'DELETE' })
     fetchPhotos()
-    showToast('Photo supprimée', 'ok')
+    showToast('Photo deleted', 'ok')
   }
 
   const deleteAll = async () => {
-    if (!confirm('Supprimer toutes les photos ?')) return
+    if (!confirm('Delete all photos?')) return
     await fetch('/api/photos?all=true', { method: 'DELETE' })
     fetchPhotos()
-    showToast('Galerie vidée', 'ok')
+    showToast('Gallery cleared', 'ok')
   }
 
   const logout = async () => {
@@ -117,14 +115,7 @@ export default function AdminPage() {
     router.push('/login')
   }
 
-  // ── CLAUDE CHAT ──
-  const saveApiKey = () => {
-    if (!apiKey.startsWith('sk-ant')) { showToast('Clé invalide', 'err'); return }
-    localStorage.setItem('void_apikey', apiKey)
-    setApiConnected(true)
-    showToast('Clé API sauvegardée ✓', 'ok')
-  }
-
+  // ── LOCAL AI CHAT ──
   const sendChat = async (text) => {
     if (!text || !apiConnected) return
     setChatInput('')
@@ -133,27 +124,20 @@ export default function AdminPage() {
     setChatLoading(true)
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/claude', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
         },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: `Tu es l'assistant IA de VOID Gallery, une galerie photo dark/gothique. Tu aides à créer du contenu viral (hooks, captions, idées Reels), analyser les visuels, et optimiser la stratégie. Sois concis, créatif, avec une touche dark et poétique. Parle en français. ${photos.length} photos publiées.`,
-          messages: chatHistory.current,
-        }),
+        body: JSON.stringify({ messages: chatHistory.current }),
       })
       const d = await res.json()
-      const reply = d.content?.[0]?.text || 'Erreur'
+      if (!res.ok) throw new Error(d.error || 'Local AI request failed')
+      const reply = d.reply || 'No response received'
       chatHistory.current.push({ role: 'assistant', content: reply })
       setChatMsgs(prev => [...prev, { type: 'ai', text: reply }])
     } catch (e) {
-      setChatMsgs(prev => [...prev, { type: 'sys', text: 'Erreur: ' + e.message }])
+      setChatMsgs(prev => [...prev, { type: 'sys', text: 'Error: ' + e.message }])
     }
     setChatLoading(false)
   }
@@ -161,11 +145,11 @@ export default function AdminPage() {
   // ── MCP ──
   const saveMcp = () => {
     const url = mcpUrl.trim().replace(/\/$/, '')
-    if (!url) { showToast('Entre l\'URL de ton site', 'err'); return }
+    if (!url) { showToast('Enter your site URL', 'err'); return }
     localStorage.setItem('void_mcpurl', url)
     localStorage.setItem('void_mcpsec', mcpSecret)
     setMcpConfigured(true)
-    showToast('Config MCP sauvegardée ✓', 'ok')
+    showToast('MCP configuration saved ✓', 'ok')
   }
 
   const mcpSnippet = mcpUrl
@@ -183,7 +167,7 @@ export default function AdminPage() {
 
   const copySnippet = () => {
     if (!mcpSnippet) return
-    navigator.clipboard.writeText(mcpSnippet).then(() => showToast('Copié ✓', 'ok'))
+    navigator.clipboard.writeText(mcpSnippet).then(() => showToast('Copied ✓', 'ok'))
   }
 
   return (
@@ -201,8 +185,8 @@ export default function AdminPage() {
           ))}
         </nav>
         <div className={styles.sidebarFooter}>
-          <a href="/" target="_blank" className={styles.sidebarLink}>↗ Voir la galerie</a>
-          <button className={styles.sidebarLink} onClick={logout}>← Déconnexion</button>
+          <a href="/" target="_blank" className={styles.sidebarLink}>↗ View gallery</a>
+          <button className={styles.sidebarLink} onClick={logout}>← Log out</button>
         </div>
       </aside>
 
@@ -213,7 +197,7 @@ export default function AdminPage() {
           <span className={styles.topTitle}>{TAB_LABELS[tab]}</span>
           <div className={styles.topRight}>
             <span className={styles.badge}><span className={`${styles.dot} ${styles.on}`} /> ADMIN ACTIF</span>
-            <span className={styles.badge}><span className={`${styles.dot} ${mcpConfigured ? styles.on : ''}`} /> CLAUDE MCP</span>
+            <span className={styles.badge}><span className={`${styles.dot} ${mcpConfigured ? styles.on : ''}`} /> MCP</span>
           </div>
         </div>
 
@@ -221,9 +205,9 @@ export default function AdminPage() {
         {tab === 'upload' && (
           <div className={styles.panel}>
             <div className={styles.statsRow}>
-              <div className={styles.statCard}><div className={styles.statNum}>{photos.length}</div><div className={styles.statLabel}>Photos publiées</div></div>
-              <div className={styles.statCard}><div className={styles.statNum}>{pending.length}</div><div className={styles.statLabel}>En attente</div></div>
-              <div className={styles.statCard}><div className={styles.statNum}>{apiConnected ? '●' : '○'}</div><div className={styles.statLabel}>Claude API</div></div>
+              <div className={styles.statCard}><div className={styles.statNum}>{photos.length}</div><div className={styles.statLabel}>Published photos</div></div>
+              <div className={styles.statCard}><div className={styles.statNum}>{pending.length}</div><div className={styles.statLabel}>Pending</div></div>
+              <div className={styles.statCard}><div className={styles.statNum}>{apiConnected ? '●' : '○'}</div><div className={styles.statLabel}>Local AI</div></div>
             </div>
 
             <div
@@ -236,8 +220,8 @@ export default function AdminPage() {
               <input id="fileInput" type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
               <div className={styles.dropIcon}>◈</div>
               <div className={styles.dropText}>
-                <strong>Glisser des photos ici</strong>
-                JPG · PNG · WEBP — plusieurs fichiers acceptés
+                <strong>Drag photos here</strong>
+                JPG · PNG · WEBP — multiple files accepted
               </div>
             </div>
 
@@ -254,14 +238,14 @@ export default function AdminPage() {
 
             <div className={styles.formRow}>
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Label / Titre (optionnel)</label>
+                <label className={styles.fieldLabel}>Label / Title (optional)</label>
                 <input className={styles.input} value={label} onChange={e => setLabel(e.target.value)} placeholder="ex: Session Studio 01" />
               </div>
             </div>
 
             <div className={styles.btnRow}>
-              <button className={styles.btnPrimary} onClick={publish} disabled={!pending.length}>⬡ PUBLIER {pending.length > 0 ? `(${pending.length})` : ''}</button>
-              <button className={styles.btnGhost} onClick={() => { setPending([]); setLabel('') }}>VIDER</button>
+              <button className={styles.btnPrimary} onClick={publish} disabled={!pending.length}>⬡ PUBLISH {pending.length > 0 ? `(${pending.length})` : ''}</button>
+              <button className={styles.btnGhost} onClick={() => { setPending([]); setLabel('') }}>CLEAR</button>
             </div>
           </div>
         )}
@@ -271,15 +255,15 @@ export default function AdminPage() {
           <div className={styles.panel}>
             <div className={styles.photosHeader}>
               <span className={styles.fieldLabel}>{photos.length} PHOTO{photos.length !== 1 ? 'S' : ''}</span>
-              <button className={styles.btnDanger} onClick={deleteAll}>TOUT SUPPRIMER</button>
+              <button className={styles.btnDanger} onClick={deleteAll}>DELETE ALL</button>
             </div>
             {photos.length === 0
-              ? <p className={styles.empty}>Aucune photo publiée.</p>
+              ? <p className={styles.empty}>No photos published.</p>
               : (
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Aperçu</th><th>Label</th><th>Date</th><th>Action</th>
+                      <th>Preview</th><th>Label</th><th>Date</th><th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -287,8 +271,8 @@ export default function AdminPage() {
                       <tr key={p.id}>
                         <td><img className={styles.thumb} src={p.src} alt="" /></td>
                         <td className={styles.italic}>{p.label || '—'}</td>
-                        <td className={styles.mono}>{new Date(p.date).toLocaleDateString('fr-FR')}</td>
-                        <td><button className={styles.btnDanger} onClick={() => deletePhoto(p.id)}>SUPPRIMER</button></td>
+                        <td className={styles.mono}>{new Date(p.date).toLocaleDateString('en-US')}</td>
+                        <td><button className={styles.btnDanger} onClick={() => deletePhoto(p.id)}>DELETE</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -298,58 +282,54 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ── CLAUDE MCP PANEL ── */}
+        {/* ── LOCAL AI AND MCP PANEL ── */}
         {tab === 'claude' && (
           <div className={styles.panel}>
             <div className={styles.mcpGrid}>
               {/* MCP Config */}
               <div className={styles.mcpCard}>
                 <h2 className={styles.mcpTitle}>CONFIG <span>MCP</span></h2>
-                <p className={styles.mcpDesc}>Connecte Claude à cette app via MCP. Entre l'URL de ton site hébergé.</p>
+                <p className={styles.mcpDesc}>Connect an external AI tool to this app via MCP.</p>
                 <div className={styles.statusRow}>
                   <span className={`${styles.dot} ${mcpConfigured ? styles.on : ''}`} />
-                  <span className={styles.statusTxt}>{mcpConfigured ? 'CONFIGURÉ' : 'NON CONFIGURÉ'}</span>
+                  <span className={styles.statusTxt}>{mcpConfigured ? 'CONFIGURED' : 'NOT CONFIGURED'}</span>
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.fieldLabel}>URL du site hébergé</label>
+                  <label className={styles.fieldLabel}>Hosted site URL</label>
                   <input className={styles.input} value={mcpUrl} onChange={e => setMcpUrl(e.target.value)} placeholder="https://void-gallery.vercel.app" />
                 </div>
                 <div className={styles.field} style={{ marginTop: 12 }}>
-                  <label className={styles.fieldLabel}>Clé MCP secrète (optionnel)</label>
-                  <input className={styles.input} type="password" value={mcpSecret} onChange={e => setMcpSecret(e.target.value)} placeholder="Clé partagée" />
+                  <label className={styles.fieldLabel}>MCP secret key (optional)</label>
+                  <input className={styles.input} type="password" value={mcpSecret} onChange={e => setMcpSecret(e.target.value)} placeholder="Shared key" />
                 </div>
                 <div className={styles.btnRow} style={{ marginTop: 16 }}>
-                  <button className={styles.btnPrimary} onClick={saveMcp}>SAUVEGARDER</button>
+                  <button className={styles.btnPrimary} onClick={saveMcp}>SAVE</button>
                 </div>
                 {mcpSnippet && (
                   <>
-                    <p className={styles.fieldLabel} style={{ marginTop: 20, marginBottom: 8 }}>Script pour Claude.ai → Settings → MCP Servers</p>
+                    <p className={styles.fieldLabel} style={{ marginTop: 20, marginBottom: 8 }}>MCP server configuration script</p>
                     <pre className={styles.codeBox}>{mcpSnippet}</pre>
-                    <button className={styles.btnGhost} onClick={copySnippet} style={{ width: '100%', marginTop: 8 }}>COPIER LE SCRIPT</button>
+                    <button className={styles.btnGhost} onClick={copySnippet} style={{ width: '100%', marginTop: 8 }}>COPY SCRIPT</button>
                   </>
                 )}
               </div>
 
               {/* Chat */}
               <div className={styles.mcpCard}>
-                <h2 className={styles.mcpTitle}>CHAT <span>CLAUDE</span></h2>
-                <p className={styles.mcpDesc}>Génère du contenu viral, des hooks et des captions directement.</p>
+                <h2 className={styles.mcpTitle}>CHAT <span>LOCAL AI</span></h2>
+                <p className={styles.mcpDesc}>Generate content locally with a free Ollama model.</p>
                 <div className={styles.statusRow}>
                   <span className={`${styles.dot} ${apiConnected ? styles.on : ''}`} />
-                  <span className={styles.statusTxt}>{apiConnected ? 'CONNECTÉ' : 'NON CONNECTÉ'}</span>
+                  <span className={styles.statusTxt}>{apiConnected ? 'CONNECTED' : 'NOT CONNECTED'}</span>
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.fieldLabel}>Clé API Anthropic</label>
-                  <div className={styles.inputRow}>
-                    <input className={styles.input} type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="sk-ant-api03-..." />
-                    <button className={styles.btnGhost} onClick={saveApiKey}>OK</button>
-                  </div>
+                  <p className={styles.mcpDesc}>No API key or paid provider is required.</p>
                 </div>
                 <div className={styles.chatBox} ref={chatRef}>
                   {chatMsgs.map((m, i) => (
                     <div key={i} className={`${styles.chatMsg} ${styles['msg_' + m.type]}`}>{m.text}</div>
                   ))}
-                  {chatLoading && <div className={`${styles.chatMsg} ${styles.msg_ai}`}><span className={styles.spin}>⟳</span> En train de répondre...</div>}
+                  {chatLoading && <div className={`${styles.chatMsg} ${styles.msg_ai}`}><span className={styles.spin}>⟳</span> Responding...</div>}
                 </div>
                 <div className={styles.inputRow}>
                   <input
@@ -357,18 +337,18 @@ export default function AdminPage() {
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && sendChat(chatInput)}
-                    placeholder="Demande à Claude..."
+                    placeholder="Ask the local AI..."
                     disabled={!apiConnected || chatLoading}
                   />
                   <button className={styles.btnPrimary} onClick={() => sendChat(chatInput)} disabled={!apiConnected || chatLoading}>SEND</button>
                 </div>
                 <div className={styles.quickBtns}>
-                  {['🔥 Hooks viraux', '◈ Captions IG', '▶ Idées Reels', '✦ Analyse style'].map((q, i) => {
+                  {['🔥 Viral hooks', '◈ Instagram captions', '▶ Reel ideas', '✦ Style analysis'].map((q, i) => {
                     const prompts = [
-                      'Génère 3 hooks viraux dark pour ma galerie photo',
-                      '5 captions Instagram dark/mystérieux pour une photo de galerie',
-                      'Idées de vidéos Reels pour une esthétique gothique dark',
-                      'Analyse le style visuel dark et donne des conseils pour améliorer l\'engagement',
+                      'Generate 3 dark viral hooks for my photography gallery',
+                      'Write 5 dark, mysterious Instagram captions for a gallery photo',
+                      'Give me Reel video ideas for a dark gothic aesthetic',
+                      'Analyze the dark visual style and give advice to improve engagement',
                     ]
                     return <button key={i} className={styles.qBtn} onClick={() => sendChat(prompts[i])}>{q}</button>
                   })}
@@ -386,17 +366,17 @@ export default function AdminPage() {
                 <h3 className={styles.settingsTitle}>Infos</h3>
                 <div className={styles.infoGrid}>
                   <span>Framework</span><span>Next.js 14</span>
-                  <span>Hébergement</span><span>Vercel</span>
-                  <span>Claude</span><span>claude-sonnet-4</span>
+                  <span>Hosting</span><span>Vercel</span>
+                  <span>AI</span><span>Ollama / llama3.2</span>
                   <span>Auth</span><span>JWT HttpOnly</span>
-                  <span>Photos</span><span>{photos.length} publiées</span>
+                  <span>Photos</span><span>{photos.length} published</span>
                 </div>
               </div>
               <div className={styles.settingsCard}>
                 <h3 className={styles.settingsTitle}>Danger Zone</h3>
-                <p className={styles.settingsDesc}>Ces actions sont irréversibles.</p>
-                <button className={styles.btnDanger} onClick={deleteAll}>VIDER TOUTE LA GALERIE</button>
-                <button className={styles.btnDanger} style={{ marginTop: 12 }} onClick={logout}>SE DÉCONNECTER</button>
+                <p className={styles.settingsDesc}>These actions cannot be undone.</p>
+                <button className={styles.btnDanger} onClick={deleteAll}>CLEAR ENTIRE GALLERY</button>
+                <button className={styles.btnDanger} style={{ marginTop: 12 }} onClick={logout}>LOG OUT</button>
               </div>
             </div>
           </div>

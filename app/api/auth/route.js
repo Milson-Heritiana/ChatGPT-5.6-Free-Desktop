@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { signToken, verifyToken } from '@/lib/auth'
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Mdpadmin1'
+function getAdminPassword() {
+  return process.env.ADMIN_PASSWORD
+}
 
 export async function GET(request) {
   try {
@@ -22,9 +24,14 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const { password } = await request.json()
+    const adminPassword = getAdminPassword()
 
-    if (password !== ADMIN_PASSWORD) {
-      return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 401 })
+    if (!adminPassword) {
+      return NextResponse.json({ error: 'Authentication is not configured' }, { status: 500 })
+    }
+
+    if (typeof password !== 'string' || password !== adminPassword) {
+      return NextResponse.json({ error: 'Incorrect password' }, { status: 401 })
     }
 
     const token = await signToken({ role: 'admin', user: 'admin' })
@@ -40,7 +47,7 @@ export async function POST(request) {
 
     return response
   } catch (err) {
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
 

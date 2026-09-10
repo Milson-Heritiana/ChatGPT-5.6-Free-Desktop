@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/auth'
 export async function middleware(request) {
   const { pathname } = request.nextUrl
 
-  // Protéger toutes les routes /admin
+  // Protect all /admin routes.
   if (pathname.startsWith('/admin')) {
     try {
       const token = request.cookies.get('void_auth')?.value
@@ -34,7 +34,7 @@ export async function middleware(request) {
     }
   }
 
-  // Protéger les API admin
+  // Protect admin API mutations.
   if (pathname.startsWith('/api/photos') && request.method !== 'GET') {
     try {
       const token = request.cookies.get('void_auth')?.value

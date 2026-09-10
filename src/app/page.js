@@ -47,20 +47,20 @@ export default function GalleryPage() {
         <h1 className={styles.heroTitle}>
           DARK<span className={styles.heroOutline}>ARCHIVE</span>
         </h1>
-        <p className={styles.heroSub}>Une galerie sans compromis. Des visuels bruts, intenses, authentiques.</p>
+        <p className={styles.heroSub}>An uncompromising gallery. Raw, intense, authentic visuals.</p>
         <div className={styles.scrollHint}>SCROLL DOWN</div>
       </section>
 
       {/* GALLERY */}
       <section className={styles.gallerySection}>
         <div className={styles.galleryHeader}>
-          <span className={styles.galleryLabel}>Collection Complète</span>
+          <span className={styles.galleryLabel}>Complete Collection</span>
           <span className={styles.galleryCount}>{photos.length} photo{photos.length !== 1 ? 's' : ''}</span>
         </div>
 
-        {!loaded && <p className={styles.empty}>Chargement...</p>}
+        {!loaded && <p className={styles.empty}>Loading...</p>}
         {loaded && photos.length === 0 && (
-          <p className={styles.empty}>Aucune photo publiée pour l'instant.</p>
+          <p className={styles.empty}>No photos published yet.</p>
         )}
 
         {photos.length > 0 && (

@@ -22,11 +22,11 @@ export default function LoginPage() {
         router.push('/admin')
       } else {
         const d = await res.json()
-        setError(d.error || 'Erreur')
+        setError(d.error || 'Error')
         setPw('')
       }
     } catch {
-      setError('Erreur réseau')
+      setError('Network error')
     }
     setLoading(false)
   }
@@ -39,11 +39,11 @@ export default function LoginPage() {
       <div className={styles.bgGlow} />
 
       <div className={styles.box}>
-        <p className={styles.eyebrow}>Accès restreint</p>
+        <p className={styles.eyebrow}>Restricted access</p>
         <h1 className={styles.title}>ADMIN<br />ACCESS</h1>
-        <p className={styles.sub}>Zone privée — identification requise.</p>
+        <p className={styles.sub}>Private area — authentication required.</p>
 
-        <label className={styles.label}>Mot de passe</label>
+        <label className={styles.label}>Password</label>
         <input
           className={styles.input}
           type="password"
@@ -60,7 +60,7 @@ export default function LoginPage() {
 
         {error && <p className={styles.err}>{error}</p>}
 
-        <a href="/" className={styles.back}>← retour à la galerie</a>
+        <a href="/" className={styles.back}>← back to gallery</a>
         <span className={styles.tag}>VOID.ADMIN</span>
       </div>
     </div>

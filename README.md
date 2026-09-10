@@ -24,6 +24,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Environment variables
+
+Copy `.env.example` to `.env.local` and set strong values for `ADMIN_PASSWORD`, `JWT_SECRET`, and `MCP_SECRET`. The AI assistant uses Ollama locally, so it does not require a paid API key. Install Ollama, run `ollama pull llama3.2`, and keep Ollama running while using the assistant.
+
+Photo data is currently stored in memory for the demo. Use a database and object storage adapter before deploying to production if uploads must survive restarts or redeployments.
+
 ## Learn More
 
 To learn more, take a look at the following resources:
